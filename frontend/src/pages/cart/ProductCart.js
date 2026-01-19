@@ -31,19 +31,16 @@ const ProductCart = () => {
     }
   };
 
-  // 1. Cập nhật UI tạm thời (Local State) để gõ phím mượt mà
   const updateLocalQty = (productId, newQty) => {
     setCart(prev => ({
       ...prev,
-      products: prev.products.map(p => 
+      products: prev.products.map(p =>
         p.productId === productId ? { ...p, quantity: newQty } : p
       )
     }));
   };
 
-  // 2. Xử lý khi gõ trực tiếp vào ô input
   const handleInputChange = (item, value) => {
-    // Chỉ lấy số, loại bỏ ký tự lạ
     const val = value.replace(/[^0-9]/g, '');
     if (val === '') {
       updateLocalQty(item.productId, '');
@@ -51,12 +48,12 @@ const ProductCart = () => {
     }
 
     const num = parseInt(val);
-    const stock = item.productQuantity || 99; // Giả định tồn kho nếu backend chưa có
+    const stock = item.productQuantity || 99;
 
     if (num > stock) {
       Swal.fire({
         title: 'Hết hàng',
-        text: `Sản phẩm này chỉ còn ${stock} món trong kho`,
+        text: `Sản phẩm này chỉ còn ${stock} món`,
         icon: 'warning',
         timer: 1500,
         showConfirmButton: false
@@ -67,13 +64,12 @@ const ProductCart = () => {
     }
   };
 
-  // 3. Gửi API đồng bộ dữ liệu (Khi bấm nút hoặc khi rời ô input - OnBlur)
   const syncQuantity = async (productId, finalQty) => {
     if (finalQty === '' || finalQty < 1) {
-      loadCart(); // Reset về dữ liệu cũ từ server nếu nhập bậy
+      loadCart();
       return;
     }
-    
+
     try {
       setUpdatingId(productId);
       await cartService.updateQuantity(cart.cartId, productId, finalQty);
@@ -115,10 +111,12 @@ const ProductCart = () => {
     }
   };
 
+  // ✅ FIX ĐÚNG specialPrice
   const calculateCartTotal = () => {
     return cart?.products?.reduce((total, item) => {
-      const price = item.productPrice || item.specialPrice || item.price || 0;
-      return total + (price * (parseInt(item.quantity) || 0));
+      const unitPrice =
+        item.specialPrice ?? item.productPrice ?? item.price ?? 0;
+      return total + unitPrice * (parseInt(item.quantity) || 0);
     }, 0) || 0;
   };
 
@@ -134,104 +132,90 @@ const ProductCart = () => {
       <div className="container m-5 text-center">
         <i className="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
         <h3 className="text-muted">Giỏ hàng trống</h3>
-        <Link to="/product" className="btn btn-warning mt-3 px-4 rounded-pill fw-bold">Mua sắm ngay</Link>
+        <Link to="/product" className="btn btn-warning mt-3 fw-bold">
+          Mua sắm ngay
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="container mt-4 mb-5">
-      <h2 className="fw-bold mb-4 text-primary"><i className="fas fa-shopping-basket me-2"></i>GIỎ HÀNG CỦA BẠN</h2>
+      <h2 className="fw-bold mb-4 text-primary">GIỎ HÀNG CỦA BẠN</h2>
+
       <div className="row">
         <div className="col-lg-8">
           <div className="card shadow-sm border-0">
-            {cart.products.map((item) => (
-              <div key={item.productId} className={`row align-items-center p-3 border-bottom m-0 ${updatingId === item.productId ? 'item-updating' : ''}`}>
-                <div className="col-3 col-md-2">
-                  <img 
-                    src={`http://localhost:8080/api/public/products/image/${item.image}`} 
-                    className="img-fluid rounded shadow-sm" alt={item.productName} 
-                  />
-                </div>
-                <div className="col-9 col-md-4">
-                  <h6 className="mb-1 fw-bold text-dark">{item.productName}</h6>
-                  <p className="text-muted small mb-0">Đơn giá: <span className="text-danger">{(item.productPrice || item.price).toLocaleString()}₫</span></p>
-                </div>
-                
-                {/* Bộ điều khiển số lượng nhập tay */}
-                <div className="col-6 col-md-3 mt-3 mt-md-0 d-flex justify-content-center">
-                  <div className="quantity-toggle">
-                    <button 
-                      className="quantity-btn"
-                      onClick={() => {
-                        const newQty = parseInt(item.quantity) - 1;
-                        updateLocalQty(item.productId, newQty);
-                        syncQuantity(item.productId, newQty);
-                      }}
-                      disabled={item.quantity <= 1}
-                    >
-                      <i className="fas fa-minus"></i>
-                    </button>
-                    
-                    <input 
-                      type="text" 
-                      className="quantity-input" 
-                      value={item.quantity}
-                      onChange={(e) => handleInputChange(item, e.target.value)}
-                      onBlur={(e) => syncQuantity(item.productId, parseInt(e.target.value))}
+            {cart.products.map(item => {
+              const unitPrice =
+                item.specialPrice ?? item.productPrice ?? item.price;
+
+              return (
+                <div key={item.productId} className="row align-items-center p-3 border-bottom m-0">
+                  <div className="col-3 col-md-2">
+                    <img
+                      src={`http://localhost:8080/api/public/products/image/${item.image}`}
+                      className="img-fluid rounded"
+                      alt={item.productName}
                     />
-                    
-                    <button 
-                      className="quantity-btn"
-                      onClick={() => {
-                        const newQty = (parseInt(item.quantity) || 0) + 1;
-                        if (newQty <= (item.productQuantity || 99)) {
-                          updateLocalQty(item.productId, newQty);
-                          syncQuantity(item.productId, newQty);
-                        } else {
-                          Swal.fire('Hết hàng', 'Không thể thêm quá số lượng tồn kho', 'info');
-                        }
-                      }}
+                  </div>
+
+                  <div className="col-9 col-md-4">
+                    <h6 className="fw-bold">{item.productName}</h6>
+                    <p className="text-muted small">
+                      Đơn giá:
+                      <span className="text-danger ms-1">
+                        {unitPrice.toLocaleString()}₫
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="col-6 col-md-3 d-flex justify-content-center">
+                    <input
+                      type="text"
+                      className="quantity-input"
+                      value={item.quantity}
+                      onChange={e => handleInputChange(item, e.target.value)}
+                      onBlur={e =>
+                        syncQuantity(item.productId, parseInt(e.target.value))
+                      }
+                    />
+                  </div>
+
+                  <div className="col-6 col-md-3 text-end">
+                    <p className="fw-bold">
+                      {(unitPrice * item.quantity).toLocaleString()}₫
+                    </p>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => handleRemoveItem(item.productId)}
                     >
-                      <i className="fas fa-plus"></i>
+                      <i className="fas fa-trash"></i>
                     </button>
                   </div>
                 </div>
-
-                <div className="col-6 col-md-3 text-end">
-                  <p className="fw-bold text-dark mb-1">{( (item.productPrice || item.price) * (item.quantity || 0)).toLocaleString()}₫</p>
-                  <button className="btn btn-sm btn-outline-danger border-0" onClick={() => handleRemoveItem(item.productId)}>
-                    <i className="fas fa-trash-alt"></i>
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Tổng kết thanh toán */}
-        <div className="col-lg-4 mt-4 mt-lg-0">
-          <div className="card shadow-sm border-0 p-4">
-            <h5 className="fw-bold mb-3 border-bottom pb-2">Hóa đơn của bạn</h5>
-            <div className="d-flex justify-content-between mb-2 text-muted">
-              <span>Tạm tính:</span>
-              <span>{calculateCartTotal().toLocaleString()}₫</span>
-            </div>
-            <div className="d-flex justify-content-between mb-2 text-muted">
-              <span>Vận chuyển:</span>
-              <span className="text-success fw-bold">Miễn phí</span>
-            </div>
+        <div className="col-lg-4 mt-4">
+          <div className="card p-4 shadow-sm">
+            <h5 className="fw-bold">Hóa đơn</h5>
             <hr />
-            <div className="d-flex justify-content-between mb-4">
-              <span className="h5 fw-bold">Tổng cộng:</span>
-              <span className="h5 fw-bold text-danger">{calculateCartTotal().toLocaleString()}₫</span>
+            <div className="d-flex justify-content-between">
+              <span>Tổng:</span>
+              <span className="fw-bold text-danger">
+                {calculateCartTotal().toLocaleString()}₫
+              </span>
             </div>
-            <button className="btn btn-warning w-100 py-3 fw-bold rounded-pill shadow" onClick={() => navigate('/checkout')}>
-              TIẾN HÀNH THANH TOÁN
+
+            <button
+              className="btn btn-warning w-100 mt-3 fw-bold"
+              onClick={() => navigate('/checkout')}
+            >
+              THANH TOÁN
             </button>
-            <Link to="/product" className="btn btn-link w-100 text-muted mt-2 text-decoration-none">
-              <i className="fas fa-arrow-left me-2"></i>Tiếp tục mua sắm
-            </Link>
           </div>
         </div>
       </div>

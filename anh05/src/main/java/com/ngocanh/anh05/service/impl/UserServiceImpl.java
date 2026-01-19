@@ -151,43 +151,75 @@ public class UserServiceImpl implements UserService {
       return userDTO;
    }
 
-   public UserDTO updateUser(Long userId, UserDTO userDTO) {
-      User user = (User)this.userRepo.findById(userId).orElseThrow(() -> {
-         return new ResourceNotFoundException("User", "userId", userId);
-      });
-      String encodedPass = this.passwordEncoder.encode(userDTO.getPassword());
-      user.setFirstName(userDTO.getFirstName());
-      user.setLastName(userDTO.getLastName());
-      user.setMobileNumber(userDTO.getMobileNumber());
-      user.setEmail(userDTO.getEmail());
-      user.setPassword(encodedPass);
-      if (userDTO.getAddress() != null) {
-         String country = userDTO.getAddress().getCountry();
-         String state = userDTO.getAddress().getState();
-         String city = userDTO.getAddress().getCity();
-         String pincode = userDTO.getAddress().getPincode();
-         String street = userDTO.getAddress().getStreet();
-         String buildingName = userDTO.getAddress().getBuildingName();
-         Address address = this.addressRepo.findByCountryAndStateAndCityAndPincodeAndStreetAndBuildingName(country, state, city, pincode, street, buildingName);
-         if (address == null) {
-            address = new Address(country, state, city, pincode, street, buildingName);
-            address = (Address)this.addressRepo.save(address);
-            user.setAddresses(List.of(address));
-         }
-      }
+@Override
+public UserDTO updateUser(Long userId, UserDTO userDTO) {
 
-      userDTO = (UserDTO)this.modelMapper.map(user, UserDTO.class);
-      userDTO.setAddress((AddressDTO)this.modelMapper.map(user.getAddresses().stream().findFirst().get(), AddressDTO.class));
-      CartDTO cart = (CartDTO)this.modelMapper.map(user.getCart(), CartDTO.class);
-      List<ProductDTO> products = (List)user.getCart().getCartItems().stream().map((item) -> {
-         return (ProductDTO)this.modelMapper.map(item.getProduct(), ProductDTO.class);
-      }).collect(Collectors.toList());
-      userDTO.setCart(cart);
-      userDTO.getCart().setProducts(products);
-      return userDTO;
-   }
+    User user = userRepo.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User", "userId", userId));
 
-   public UserDTO updateUserRoles(Long userId, Long roleIds) {
+    // ===== UPDATE USER BASIC INFO =====
+    if (userDTO.getFirstName() != null)
+        user.setFirstName(userDTO.getFirstName());
+
+    if (userDTO.getLastName() != null)
+        user.setLastName(userDTO.getLastName());
+
+    if (userDTO.getMobileNumber() != null)
+        user.setMobileNumber(userDTO.getMobileNumber());
+
+    if (userDTO.getEmail() != null)
+        user.setEmail(userDTO.getEmail());
+
+    // ===== UPDATE ADDRESS =====
+    if (userDTO.getAddress() != null) {
+        AddressDTO a = userDTO.getAddress();
+
+        Address address;
+        if (user.getAddresses() != null && !user.getAddresses().isEmpty()) {
+            address = user.getAddresses().get(0);
+        } else {
+            address = new Address();
+        }
+
+        if (a.getCountry() != null) address.setCountry(a.getCountry());
+        if (a.getState() != null) address.setState(a.getState());
+        if (a.getCity() != null) address.setCity(a.getCity());
+        if (a.getPincode() != null) address.setPincode(a.getPincode());
+        if (a.getStreet() != null) address.setStreet(a.getStreet());
+        if (a.getBuildingName() != null) address.setBuildingName(a.getBuildingName());
+
+        addressRepo.save(address);
+        user.setAddresses(List.of(address));
+    }
+
+    User updatedUser = userRepo.save(user);
+
+    // ===== MAP TO DTO =====
+    UserDTO result = modelMapper.map(updatedUser, UserDTO.class);
+
+    if (!updatedUser.getAddresses().isEmpty()) {
+        result.setAddress(
+            modelMapper.map(updatedUser.getAddresses().get(0), AddressDTO.class)
+        );
+    }
+
+    if (updatedUser.getCart() != null) {
+        CartDTO cartDTO = modelMapper.map(updatedUser.getCart(), CartDTO.class);
+
+        List<ProductDTO> products = updatedUser.getCart()
+                .getCartItems()
+                .stream()
+                .map(item -> modelMapper.map(item.getProduct(), ProductDTO.class))
+                .collect(Collectors.toList());
+
+        cartDTO.setProducts(products);
+        result.setCart(cartDTO);
+    }
+
+    return result;
+}
+
+public UserDTO updateUserRoles(Long userId, Long roleIds) {
       try {
          User user = (User)this.userRepo.findById(userId).orElseThrow(() -> {
             return new ResourceNotFoundException("User", "id", userId);

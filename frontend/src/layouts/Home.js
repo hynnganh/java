@@ -9,7 +9,7 @@ import ProductNew from '../pages/product/ProductNew';
 //import ProductMostViewed from '../pages/product/ProductMostViewed';
 import Banner from '../pages/home/Banner';
 import BeautyBlog from '../pages/post/Post';
-import CategoryList from '../pages/category/Category';
+//import CategoryList from '../pages/category/Category';
 
 
 // import ProductList from "../pages/product/ProductList"; // ✅ thêm dòng này
@@ -22,7 +22,7 @@ function Home(props) {
     <>
       <Banner />
       <ProductNew />
-      <CategoryList />
+      {/* <CategoryList /> */}
       <BeautyBlog />
       <Banner />
       <Notification />     

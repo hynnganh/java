@@ -25,10 +25,29 @@ const ProductDetail = () => {
         // 1. Lấy chi tiết sản phẩm
         const productData = await productService.getProductById(productId);
         setProduct(productData);
+        const categoryId =
+          productData.categoryId ||
+          productData.category?.categoryId ||
+          productData.category_id ||
+          productData.categories?.[0]?.categoryId;
 
-        // 2. Lấy sản phẩm liên quan (Sử dụng dữ liệu thật từ Backend)
-        const related = await productService.getProductsByCategory(productData.categoryId || 1, 0, 4);
-        setRelatedProducts(related.content.filter(p => (p.productId || p.id) !== parseInt(productId)));
+        if (!categoryId) {
+          console.error("❌ Không lấy được categoryId", productData);
+          setRelatedProducts([]);
+        } else {
+          // 3️⃣ LẤY SẢN PHẨM CÙNG DANH MỤC
+          const related = await productService.getProductsByCategory(
+            categoryId,
+            0,
+            8
+          );
+
+          const filtered = (related?.content || []).filter(
+            (p) => (p.productId ?? p.id) !== Number(productId)
+          );
+
+          setRelatedProducts(filtered);
+        }
 
         // 3. Gợi ý sản phẩm
         const suggested = await productService.getAllProducts(0, 4);
@@ -86,7 +105,7 @@ const ProductDetail = () => {
       <nav aria-label="breadcrumb" className="mb-4">
         <ol className="breadcrumb bg-light p-3 rounded-pill shadow-sm">
           <li className="breadcrumb-item"><Link to="/" className="text-decoration-none">Trang chủ</Link></li>
-          <li className="breadcrumb-item"><Link to="/products" className="text-decoration-none">Sản phẩm</Link></li>
+          <li className="breadcrumb-item"><Link to="/product" className="text-decoration-none">Sản phẩm</Link></li>
           <li className="breadcrumb-item active text-truncate" style={{maxWidth: '200px'}}>{product.productName}</li>
         </ol>
       </nav>
