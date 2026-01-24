@@ -16,14 +16,10 @@ public class CartDTO {
     private List<ProductDTO> products = new ArrayList<>();
 
 
-    
-
-    // Helper method to get total items count
     public int getTotalItems() {
         return products != null ? products.size() : 0;
     }
     
-    // Helper method to check if cart has products with images
     public boolean hasProductsWithImages() {
         if (products == null) return false;
         return products.stream().anyMatch(product -> product.getImage() != null && !product.getImage().isEmpty());
