@@ -15,7 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.util.List;
+import java.util.stream.Collectors;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,6 +32,33 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+// ===================== GET ALL PRODUCTS (FOR ADMIN) =====================
+// Dùng đường dẫn riêng để tránh lỗi Ambiguous mapping
+// @GetMapping("/admin/products")
+// public ResponseEntity<ProductResponse> getAllProductsAD(
+//         @RequestParam(defaultValue = "0") Integer pageNumber,
+//         @RequestParam(defaultValue = "50") Integer pageSize) { // Cho admin xem nhiều hơn
+
+//     // Gọi chung logic phân trang từ Service
+//     ProductResponse productResponse = productService.getAllProducts(
+//             pageNumber, pageSize, "productId", "asc"
+//     );
+
+//     return ResponseEntity.ok(productResponse);
+// }
+@GetMapping("/admin/products")
+public ResponseEntity<ProductResponse> getAllProductsAD(
+        @RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber,
+        @RequestParam(name = "pageSize", defaultValue = "50") Integer pageSize,
+        @RequestParam(name = "keyword", required = false) String keyword) {
+
+    // Nếu có keyword thì tìm kiếm, không thì lấy hết
+    ProductResponse productResponse = productService.getAllProductsForAdmin(
+            pageNumber, pageSize, "productId", "asc", keyword
+    );
+
+    return ResponseEntity.ok(productResponse);
+}
     // ===================== ADD PRODUCT =====================
     @PostMapping("/admin/categories/{categoryId}/products")
     public ResponseEntity<EntityModel<ProductDTO>> addProduct(
@@ -172,4 +200,6 @@ public class ProductController {
         String status = productService.deleteProduct(productId);
         return ResponseEntity.ok(status);
     }
+
+    
 }

@@ -5,6 +5,9 @@ import com.ngocanh.anh05.payloads.UserDTO;
 import com.ngocanh.anh05.payloads.UserResponse;
 import com.ngocanh.anh05.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -68,4 +71,18 @@ public class UserController {
       String status = this.userService.deleteUser(userId);
       return new ResponseEntity(status, HttpStatus.OK);
    }
+   @PutMapping("/public/users/{userId}/change-password")
+public ResponseEntity<String> changePassword(
+        @PathVariable Long userId, 
+        @RequestBody Map<String, String> passwordData) {
+    
+    String oldPassword = passwordData.get("oldPassword");
+    String newPassword = passwordData.get("newPassword");
+    
+    userService.updatePassword(userId, oldPassword, newPassword);
+    
+    return new ResponseEntity<>("Đổi mật khẩu thành công! ✨", HttpStatus.OK);
 }
+}
+
+

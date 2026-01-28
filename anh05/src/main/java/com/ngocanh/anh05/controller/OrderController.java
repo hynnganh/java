@@ -1,6 +1,7 @@
 package com.ngocanh.anh05.controller;
-
+import org.hibernate.Hibernate;
 import com.ngocanh.anh05.entity.Order;
+import com.ngocanh.anh05.entity.Product;
 import com.ngocanh.anh05.payloads.OrderDTO;
 import com.ngocanh.anh05.payloads.OrderResponse;
 import com.ngocanh.anh05.repository.OrderRepo;
@@ -9,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,51 +73,69 @@ public class OrderController {
         OrderDTO orderDTO = orderService.updateShippingAddress(emailId, orderId, shippingAddress);
         return new ResponseEntity<>(orderDTO, HttpStatus.OK);
     }
+    @GetMapping("/admin/orders/{orderId}")
+    public ResponseEntity<OrderDTO> getOrderDetailsForAdmin(@PathVariable Long orderId) {
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng ID: " + orderId));
+        
+        OrderDTO orderDTO = orderService.getOrder(order.getEmail(), orderId);
+        return new ResponseEntity<>(orderDTO, HttpStatus.OK);
+    }
 
-    // ✅ THÊM DEBUG ENDPOINTS
+
+    @Transactional(readOnly = true)
     @GetMapping("/admin/debug/orders/{orderId}")
     public ResponseEntity<Map<String, Object>> debugOrder(@PathVariable Long orderId) {
-        try {
-            Order order = orderRepo.findById(orderId)
-                    .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("orderId", order.getOrderId());
+        response.put("email", order.getEmail());
+        response.put("shippingAddress", order.getShippingAddress());
+        response.put("totalAmount", order.getTotalAmount());
+
+        List<Map<String, Object>> items = order.getOrderItems().stream().map(item -> {
+            Map<String, Object> itemMap = new HashMap<>();
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("orderId", order.getOrderId());
-            response.put("email", order.getEmail());
-            response.put("shippingAddress", order.getShippingAddress());
-            response.put("totalAmount", order.getTotalAmount());
-            response.put("orderStatus", order.getOrderStatus());
-            response.put("hasShippingAddress", order.getShippingAddress() != null);
+            // CHIÊU CUỐI: Ép Hibernate nạp Product thật từ DB
+            Product p = item.getProduct();
+            if (p != null) {
+                Hibernate.initialize(p); // Ép nạp dữ liệu thật vào Proxy
+                itemMap.put("productName", p.getProductName()); // Đây là "Sữa Rửa Mặt Simple" nè
+                itemMap.put("image", p.getImage());
+            } else {
+                itemMap.put("productName", "Không tìm thấy SP");
+            }
             
-            System.out.println("🔍 DEBUG Order " + orderId + ": " + response);
-            
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+            itemMap.put("quantity", item.getQuantity());
+            itemMap.put("orderedProductPrice", item.getOrderedProductPrice());
+            return itemMap;
+        }).collect(Collectors.toList());
+
+        response.put("orderItems", items);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/admin/debug/orders")
-    public ResponseEntity<List<Map<String, Object>>> debugAllOrders() {
-        List<Order> orders = orderRepo.findAll();
-        List<Map<String, Object>> result = orders.stream()
-                .map(order -> {
-                    Map<String, Object> orderInfo = new HashMap<>();
-                    orderInfo.put("orderId", order.getOrderId());
-                    orderInfo.put("email", order.getEmail());
-                    orderInfo.put("shippingAddress", order.getShippingAddress());
-                    orderInfo.put("totalAmount", order.getTotalAmount());
-                    orderInfo.put("orderStatus", order.getOrderStatus());
-                    return orderInfo;
-                })
-                .collect(Collectors.toList());
-        
-        System.out.println("🔍 DEBUG All Orders: " + result.size() + " orders found");
-        
-        return ResponseEntity.ok(result);
-    }
+        public ResponseEntity<List<Map<String, Object>>> debugAllOrders() {
+            List<Order> orders = orderRepo.findAll();
+            List<Map<String, Object>> result = orders.stream()
+                    .map(order -> {
+                        Map<String, Object> orderInfo = new HashMap<>();
+                        orderInfo.put("orderId", order.getOrderId());
+                        orderInfo.put("email", order.getEmail());
+                        orderInfo.put("shippingAddress", order.getShippingAddress());
+                        orderInfo.put("totalAmount", order.getTotalAmount());
+                        orderInfo.put("orderStatus", order.getOrderStatus());
+                        return orderInfo;
+                    })
+                    .collect(Collectors.toList());
+            
+            System.out.println("🔍 DEBUG All Orders: " + result.size() + " orders found");
+            
+            return ResponseEntity.ok(result);
+        }
 
     @GetMapping("/admin/orders")
     public ResponseEntity<OrderResponse> getAllOrders(
@@ -147,7 +166,16 @@ public class OrderController {
     public ResponseEntity<OrderDTO> updateOrderStatus(
             @PathVariable Long orderId,
             @RequestParam String orderStatus) {
-        OrderDTO orderDTO = orderService.updateOrder("admin@example.com", orderId, orderStatus);
+        OrderDTO orderDTO = orderService.updateOrder(orderId, orderStatus);
         return new ResponseEntity<>(orderDTO, HttpStatus.OK);
     }
+
+    @PutMapping("/public/users/{email:.+}/orders/{orderId}/cancel")
+public ResponseEntity<OrderDTO> cancelOrder(@PathVariable String email, 
+                                            @PathVariable Long orderId,
+                                            @RequestParam String reason) {
+    OrderDTO orderDTO = orderService.cancelOrder(email, orderId, reason);
+    return new ResponseEntity<>(orderDTO, HttpStatus.OK);
+}
+
 }

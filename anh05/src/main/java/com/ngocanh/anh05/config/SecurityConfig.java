@@ -36,44 +36,43 @@ public class SecurityConfig {
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
 
-    // 🔐 MAIN SECURITY CONFIG
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            // 🧱 BẬT CORS
+            // 🌐 CORS
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-            // ❌ TẮT CSRF (vì dùng JWT)
+            // ❌ CSRF
             .csrf(csrf -> csrf.disable())
-
-            // 🧭 PHÂN QUYỀN
+            // 🔐 PHÂN QUYỀN
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(AppConstants.PUBLIC_URLS).permitAll()
                 .requestMatchers(AppConstants.USER_URLS).hasAnyAuthority("USER", "ADMIN")
-                .requestMatchers(AppConstants.ADMIN_URLS).hasAuthority("ADMIN")
+                .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+                .requestMatchers(AppConstants.ADMIN_URLS).hasAuthority("ADMIN") 
                 .anyRequest().authenticated()
             )
-
-            // 🧨 UNAUTHORIZED HANDLER
+            // ❗ 401 HANDLER
             .exceptionHandling(ex -> ex.authenticationEntryPoint(
                 (request, response, authException) ->
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
             ))
 
-            // 🧾 KHÔNG DÙNG SESSION
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+            // 🚫 KHÔNG DÙNG SESSION
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            );
 
         // 🔎 JWT FILTER
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // 🧩 AUTH PROVIDER
+        // 🔧 AUTH PROVIDER
         http.authenticationProvider(daoAuthenticationProvider());
 
         return http.build();
     }
 
-    // 🔧 DAO AUTH PROVIDER
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -82,37 +81,30 @@ public class SecurityConfig {
         return provider;
     }
 
-    // 🔐 PASSWORD ENCODER
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 🧠 AUTH MANAGER
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 
-    // 🌐 CORS CONFIG
+    // 🌍 CORS CONFIG
     @Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration config = new CorsConfiguration();
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
 
-    config.setAllowCredentials(true);
+        config.setAllowCredentials(true);
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
 
-    config.setAllowedOriginPatterns(List.of("*"));  // ⭐ CHO MỌI THIẾT BỊ
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
 
-    config.setAllowedMethods(List.of(
-            "GET", "POST", "PUT", "DELETE", "OPTIONS"
-    ));
-
-    config.setAllowedHeaders(List.of("*"));
-
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", config);
-
-    return source;
-}
+        return source;
+    }
 }

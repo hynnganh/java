@@ -1,53 +1,87 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom"; // Thêm Outlet
 import 'bootstrap/dist/css/bootstrap.min.css';
-import "./assets/sass/ui.scss";
-import "./assets/sass/bootstrap.scss";
-import "./assets/sass/responsive.scss";
-import "./assets/fonts/fontawesome/css/all.min.css";
-
+import ScrollToTop from "./layouts/ScrollToTop";
+// Layouts
 import Header from "./layouts/Header";
 import Footer from "./layouts/Footer";
 import Main from "./layouts/Main";
+
+// Pages User
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
 import ProductList from "./pages/product/ProductList";
 import ProductDetail from "./pages/product/ProductDetail";
-import EditProfile from './pages/auth/EditProfile';
-import ProductCart from './pages/cart/ProductCart';
-
+import ProductCart from "./pages/cart/ProductCart";
 import Checkout from "./pages/order/CheckOut";
 import OrderList from "./pages/order/OrderList";
 
+// Admin
+import AdminRoute from "./routes/AdminRoute";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminLogin from "./pages/admin/AdminLogin";
+import ProductListAD from "./pages/admin/products/ProductListAD";
+import CategoryListAD from "./pages/admin/categories/CategoryListAD";
+import OrderListAD from "./pages/admin/orders/OrderListAD";
+// Thành phần Layout cho User để tái sử dụng Header/Footer
+const UserLayout = () => (
+  <>
+    <Header />
+    {/* Thêm transition nhẹ khi chuyển trang nếu muốn */}
+    <div style={{ minHeight: "80vh" }}>
+      <Outlet /> 
+    </div>
+    <Footer />
+  </>
+);
+
 function App() {
   return (
-    <div>
-      <Header />
-
+    <>
+      <ScrollToTop />
+      
       <Routes>
-        <Route path="/" element={<Main />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/profile" element={<EditProfile />} />
-        
-        {/* Routes sản phẩm */}
-        <Route path="/product" element={<ProductList />} />
-        <Route path="/product/:productId" element={<ProductDetail />} />
-        
-        {/* Routes giỏ hàng - QUAN TRỌNG: sửa đường dẫn */}
-        <Route path="/cart" element={<ProductCart />} />
+        {/* 1. TRANG LOGIN ADMIN */}
+        <Route path="/admin/login" element={<AdminLogin />} />
 
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/orders" element={<OrderList />} />
+        {/* 2. GIAO DIỆN ADMIN */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="products" element={<ProductListAD />} />
+          <Route path="categories" element={<CategoryListAD />} />
+          <Route path="orders" element={<OrderListAD />} />
+        </Route>
 
-        
-        {/* Route fallback cho 404 */}
-        <Route path="*" element={<div className="container mt-4 text-center"><h2>404 - Trang không tồn tại</h2></div>} />
+        {/* 3. GIAO DIỆN USER */}
+        <Route path="/" element={<UserLayout />}>
+          <Route index element={<Main />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="product" element={<ProductList />} />
+          <Route path="category/:categoryId" element={<ProductList />} />
+          <Route path="product/:productId" element={<ProductDetail />} />
+          <Route path="cart" element={<ProductCart />} />
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="orders" element={<OrderList />} />
+          <Route path="*" element={
+            <div className="text-center py-5">
+              <h2 className="display-1 fw-bold text-muted">404</h2>
+              <p className="fs-4">Trang này không tồn tại rồi bạn ơi! 😅</p>
+            </div>
+          } />
+        </Route>
       </Routes>
-
-      <Footer />
-    </div>
+    </>
   );
 }
-
 export default App;

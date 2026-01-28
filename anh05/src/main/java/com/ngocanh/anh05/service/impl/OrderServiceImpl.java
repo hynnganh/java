@@ -2,6 +2,7 @@ package com.ngocanh.anh05.service.impl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,7 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
+import lombok.extern.slf4j.Slf4j;
 import com.ngocanh.anh05.entity.Cart;
 import com.ngocanh.anh05.entity.CartItem;
 import com.ngocanh.anh05.entity.Order;
@@ -33,7 +34,7 @@ import com.ngocanh.anh05.repository.ProductRepo;
 import com.ngocanh.anh05.service.OrderService;
 
 import jakarta.transaction.Transactional;
-
+@Slf4j
 @Service
 @Transactional
 public class OrderServiceImpl implements OrderService {
@@ -59,8 +60,6 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ModelMapper modelMapper;
 
-    // ✅ PHƯƠNG THỨC MỚI: Place order với shipping address
-    // ✅ PHƯƠNG THỨC MỚI: Place order với shipping address
 @Override
 public OrderDTO placeOrder(String emailId, Long cartId, String paymentMethod, String shippingAddress) {
     System.out.println("🛒 START placeOrder WITH ADDRESS: " + emailId + ", cartId: " + cartId + 
@@ -106,56 +105,39 @@ public OrderDTO placeOrder(String emailId, Long cartId, String paymentMethod, St
     System.out.println("✅ Order saved with ID: " + savedOrder.getOrderId() + 
                       ", Shipping Address in DB: " + savedOrder.getShippingAddress());
 
-    // 5️⃣ Tạo OrderItems từ CartItems
     List<OrderItem> orderItems = new ArrayList<>();
     for (CartItem cartItem : cart.getCartItems()) {
+        Product product = cartItem.getProduct();
+        
+        // Kiểm tra tồn kho ngay tại đây để tránh tạo OrderItem thừa
+        if (product.getQuantity() < cartItem.getQuantity()) {
+            throw new APIException("Sản phẩm " + product.getProductName() + " đã hết hàng!");
+        }
+
         OrderItem orderItem = new OrderItem();
-        orderItem.setProduct(cartItem.getProduct());
+        orderItem.setProduct(product);
         orderItem.setQuantity(cartItem.getQuantity());
         orderItem.setDiscount(cartItem.getDiscount());
         orderItem.setOrderedProductPrice(cartItem.getProductPrice());
         orderItem.setOrder(savedOrder);
         orderItems.add(orderItem);
-        
-        System.out.println("📝 Created order item for product: " + cartItem.getProduct().getProductName());
-    }
 
-    // Lưu tất cả OrderItems
-    orderItemRepo.saveAll(orderItems);
-    System.out.println("✅ OrderItems saved: " + orderItems.size());
-
-    // 6️⃣ Cập nhật tồn kho và xóa CartItems
-    for (CartItem cartItem : cart.getCartItems()) {
-        Product product = cartItem.getProduct();
-        int orderedQuantity = cartItem.getQuantity();
-        
-        // Kiểm tra tồn kho
-        if (product.getQuantity() < orderedQuantity) {
-            throw new APIException("Product " + product.getProductName() + " is out of stock");
-        }
-        
-        // Cập nhật số lượng
-        product.setQuantity(product.getQuantity() - orderedQuantity);
+        // Cập nhật số lượng sản phẩm
+        product.setQuantity(product.getQuantity() - cartItem.getQuantity());
         productRepo.save(product);
-        cartItemRepo.delete(cartItem);
     }
 
-    // Clear cart items list và reset total price
+    orderItemRepo.saveAll(orderItems);
+
+    // 6️⃣ Xóa CartItems và dọn giỏ hàng
+    cartItemRepo.deleteAll(cart.getCartItems()); // Dùng deleteAll cho nhanh
     cart.getCartItems().clear();
     cart.setTotalPrice(0.0);
     cartRepo.save(cart);
 
-    System.out.println("✅ Cart cleared and inventory updated");
-
-    // 7️⃣ Map to DTO và return - THÊM DEBUG
-    OrderDTO orderDTO = modelMapper.map(savedOrder, OrderDTO.class);
-    orderItems.forEach(item -> orderDTO.getOrderItems().add(modelMapper.map(item, OrderItemDTO.class)));
-
-    System.out.println("🎉 ORDER COMPLETED: " + orderDTO.getOrderId() + 
-                      " with address in DTO: " + orderDTO.getShippingAddress());
-
-    return orderDTO;
-}
+    // 7️⃣ Trả về DTO (Dùng savedOrder đã được cập nhật list orderItems)
+    savedOrder.setOrderItems(orderItems);
+    return modelMapper.map(savedOrder, OrderDTO.class);}
 
     // ✅ PHƯƠNG THỨC CŨ: Giữ để tương thích (không có shipping address)
     // @Override
@@ -203,17 +185,41 @@ public OrderDTO placeOrder(String emailId, Long cartId, String paymentMethod, St
         return orderResponse;
     }
 
-    // ---------------------- UPDATE ORDER STATUS ----------------------
+// ---------------------- UPDATE ORDER STATUS (FIXED) ----------------------
     @Override
-    public OrderDTO updateOrder(String emailId, Long orderId, String orderStatus) {
-        Order order = orderRepo.findOrderByEmailAndOrderId(emailId, orderId);
-        if (order == null) {
-            throw new ResourceNotFoundException("Order", "orderId", orderId);
-        }
-
+    @Transactional 
+    public OrderDTO updateOrder(Long orderId, String orderStatus) {
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
         order.setOrderStatus(orderStatus);
-        orderRepo.save(order);
-        return modelMapper.map(order, OrderDTO.class);
+        Order updatedOrder = orderRepo.save(order);
+        return modelMapper.map(updatedOrder, OrderDTO.class);
+    }
+
+
+    @Override
+    @Transactional
+    public OrderDTO cancelOrder(String email, Long orderId, String reason) {
+        Order order = orderRepo.findByEmailAndOrderId(email, orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
+        List<String> validStatuses = Arrays.asList("PENDING", "Order Accepted !");
+        
+        if (!validStatuses.contains(order.getOrderStatus())) {
+            throw new APIException("Đơn hàng đang ở trạng thái '" + order.getOrderStatus() + "', không thể hủy!");
+        }
+        order.getOrderItems().forEach(item -> {
+            Product product = item.getProduct();
+            if (product != null) {
+                product.setQuantity(product.getQuantity() + item.getQuantity());
+                productRepo.save(product);
+            }
+        });
+        order.setOrderStatus("CANCELLED");
+        Order updatedOrder = orderRepo.save(order);
+
+        log.info("✅ Đơn hàng #{} đã được hủy. Lý do: {}", orderId, reason);
+
+        return modelMapper.map(updatedOrder, OrderDTO.class);
     }
 
     // ✅ THÊM PHƯƠNG THỨC MỚI: Cập nhật địa chỉ giao hàng
@@ -241,4 +247,6 @@ public OrderDTO placeOrder(String emailId, Long cartId, String paymentMethod, St
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'placeOrder'");
     }
+
+    
 }

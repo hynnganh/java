@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import productService from "../../services/productService";
 import cartService from "../../services/cartService";
 import ProductCard from "../product/ProductCard"; // Nhập component đã tạo
+import ProductReview from "./ProductReview";
 import Swal from 'sweetalert2';
 
 const IMAGE_BASE_URL = "http://localhost:8080/api/public/products/image";
@@ -181,9 +182,10 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+      <ProductReview productId={productId} currentUser={currentUser} />
 
       {/* SẢN PHẨM LIÊN QUAN */}
-      <div className="mt-5 pt-5">
+      <div className="pt-2">
         <h4 className="fw-bold mb-4 border-start border-4 border-primary ps-3 text-uppercase">Sản phẩm cùng loại</h4>
         <div className="row">
           {relatedProducts.length > 0 ? (

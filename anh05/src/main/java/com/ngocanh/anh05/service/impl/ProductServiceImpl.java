@@ -97,6 +97,39 @@ public class ProductServiceImpl implements ProductService {
       return productResponse;
    }
 
+   public ProductResponse getAllProductsForAdmin(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, String keyword) {
+    Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc") 
+        ? Sort.by(sortBy).ascending() 
+        : Sort.by(sortBy).descending();
+
+    Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+    Page<Product> productPage;
+
+    if (keyword != null && !keyword.isEmpty()) {
+        productPage = productRepo.findByProductNameContainingIgnoreCase(keyword, pageDetails);
+    } else {
+        productPage = productRepo.findAll(pageDetails);
+    }
+
+    List<Product> products = productPage.getContent();
+    
+    // Convert sang DTO (nếu mày dùng DTO)
+    List<ProductDTO> productDTOs = products.stream()
+            .map(product -> modelMapper.map(product, ProductDTO.class))
+            .collect(Collectors.toList());
+
+    ProductResponse productResponse = new ProductResponse();
+    productResponse.setContent(productDTOs);
+    productResponse.setPageNumber(productPage.getNumber());
+    productResponse.setPageSize(productPage.getSize());
+    productResponse.setTotalElements(productPage.getTotalElements());
+    productResponse.setTotalPages(productPage.getTotalPages());
+    productResponse.setLastPage(productPage.isLast());
+
+    return productResponse;
+}
+
+
    public ProductDTO getProductById(Long productId) {
       Optional<Product> productOptional = this.productRepo.findById(productId);
       if (productOptional.isPresent()) {
@@ -171,7 +204,6 @@ public ProductResponse searchProductByKeyword(
       } else {
          product.setImage(productFromDB.getImage());
          product.setProductId(productId);
-         product.setCategory(productFromDB.getCategory());
          double specialPrice = product.getPrice() - product.getDiscount() * 0.01 * product.getPrice();
          product.setSpecialPrice(specialPrice);
          Product savedProduct = (Product)this.productRepo.save(product);
@@ -187,9 +219,15 @@ public ProductResponse searchProductByKeyword(
          cartDTOs.forEach((cart) -> {
             this.cartService.updateProductInCarts(cart.getCartId(), productId);
          });
+             if (product.getCategory() != null && product.getCategory().getCategoryId() != null) {
+        Category category = categoryRepo.findById(product.getCategory().getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "categoryId", product.getCategory().getCategoryId()));
+        productFromDB.setCategory(category); // Gán Category mới tìm được vào Product
+    }
          return (ProductDTO)this.modelMapper.map(savedProduct, ProductDTO.class);
       }
-   }
+   }  
+
 
    public ProductDTO updateProductImage(Long productId, MultipartFile image) throws IOException {
       Product productFromDB = (Product)this.productRepo.findById(productId).orElseThrow(() -> {
@@ -220,4 +258,14 @@ public ProductResponse searchProductByKeyword(
    public InputStream getProductImage(String fileName) throws FileNotFoundException {
       return this.fileService.getResource(this.path, fileName);
    }
+
+   public List<ProductDTO> getAllProductsNoPagination() {
+    List<Product> products = productRepo.findAll();
+    // Chuyển đổi từ Entity sang DTO (Dùng ModelMapper hoặc map thủ công)
+    return products.stream()
+                   .map(p -> modelMapper.map(p, ProductDTO.class))
+                   .collect(Collectors.toList());
 }
+}
+
+

@@ -19,8 +19,10 @@ public interface OrderService {
 
     OrderResponse getAllOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 
-    OrderDTO updateOrder(String emailId, Long orderId, String orderStatus);
+    OrderDTO updateOrder(Long orderId, String orderStatus);
     
     // ✅ THÊM PHƯƠNG THỨC MỚI: Cập nhật địa chỉ giao hàng
     OrderDTO updateShippingAddress(String emailId, Long orderId, String shippingAddress);
+
+    OrderDTO cancelOrder(String email, Long orderId, String reason);
 }

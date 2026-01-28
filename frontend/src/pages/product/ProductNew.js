@@ -4,7 +4,7 @@ import productService from '../../services/productService';
 
 const IMAGE_BASE_URL = "http://localhost:8080/api/public/products/image";
 
-const ProductSold = () => {
+const ProductNew = () => {
   const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -117,4 +117,4 @@ const ProductSold = () => {
   );
 };
 
-export default ProductSold;
+export default ProductNew;

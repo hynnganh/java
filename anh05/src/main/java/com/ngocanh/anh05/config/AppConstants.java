@@ -1,39 +1,91 @@
-// Source code is decompiled from a .class file using FernFlower decompiler (from Intellij IDEA).
+// // Source code is decompiled from a .class file using FernFlower decompiler (from Intellij IDEA).
+// package com.ngocanh.anh05.config;
+
+// public class AppConstants {
+//    public static final String PAGE_NUMBER = "0";
+//    public static final String PAGE_SIZE = "2";
+//    public static final String SORT_CATEGORIES_BY = "categoryId";
+//    public static final String SORT_PRODUCTS_BY = "productId";
+//    public static final String SORT_USERS_BY = "userId";
+//    public static final String SORT_ORDERS_BY = "totalAmount";
+//    public static final String SORT_DIR = "asc";
+//    public static final Long ADMIN_ID = 101L;
+//    public static final Long USER_ID = 102L;
+//    public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
+//    //public static final String[] PUBLIC_URLS = new String[]{"/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/api/register/**", "/api/login", "/api/public/products/image/**"};
+//    //public static final String[] USER_URLS = new String[]{"/api/public/**"};
+//    //public static final String[] ADMIN_URLS = new String[]{"/api/admin/**"};
+//    public static final String[] PUBLIC_URLS = new String[]{
+//     "/v3/api-docs/**",
+//     "/swagger-ui/**",
+//     "/swagger-ui.html",
+//     "/api/register/**",
+//     "/api/login",
+//     "/api/public/products/image/**",
+//     "/api/public/products/**",
+//     "/api/public/categories/**"
+// };
+
+// public static final String[] USER_URLS = new String[]{
+//     "/api/user/**",
+//     "/api/public/carts/**",  // ✅ carts yêu cầu login
+//     "/api/wishlist/**"
+// };
+
+// public static final String[] ADMIN_URLS = new String[]{
+//     "/api/admin/**"
+// };
+
+// }
 package com.ngocanh.anh05.config;
 
 public class AppConstants {
-   public static final String PAGE_NUMBER = "0";
-   public static final String PAGE_SIZE = "2";
-   public static final String SORT_CATEGORIES_BY = "categoryId";
-   public static final String SORT_PRODUCTS_BY = "productId";
-   public static final String SORT_USERS_BY = "userId";
-   public static final String SORT_ORDERS_BY = "totalAmount";
-   public static final String SORT_DIR = "asc";
-   public static final Long ADMIN_ID = 101L;
-   public static final Long USER_ID = 102L;
-   public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
-   //public static final String[] PUBLIC_URLS = new String[]{"/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/api/register/**", "/api/login", "/api/public/products/image/**"};
-   //public static final String[] USER_URLS = new String[]{"/api/public/**"};
-   //public static final String[] ADMIN_URLS = new String[]{"/api/admin/**"};
-   public static final String[] PUBLIC_URLS = new String[]{
+    // --- Pagination & Sorting Defaults ---
+    public static final String PAGE_NUMBER = "0";
+    public static final String PAGE_SIZE = "2";
+    public static final String SORT_CATEGORIES_BY = "categoryId";
+    public static final String SORT_PRODUCTS_BY = "productId";
+    public static final String SORT_USERS_BY = "userId";
+    public static final String SORT_ORDERS_BY = "totalAmount";
+    public static final String SORT_DIR = "asc";
+
+    // --- Role IDs (Khớp với Database) ---
+    public static final Long ADMIN_ID = 101L;
+    public static final Long USER_ID = 102L;
+
+    // --- Security Config ---
+    public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60; // 5 Giờ
+
+    // ✅ URL CÔNG KHAI: Không cần Token (Fix lỗi 401 khi Đăng ký/Đăng nhập)
+public static final String[] PUBLIC_URLS = {
     "/v3/api-docs/**",
     "/swagger-ui/**",
     "/swagger-ui.html",
+
+    "/api/register",
     "/api/register/**",
     "/api/login",
-    "/api/public/products/image/**",
-    "/api/public/products/**",
-    "/api/public/categories/**"
+
+    "/api/public/**",
+
+    "/api/forgot-password/**",
+    "/api/reset-password/**",
+    "/error"
 };
 
-public static final String[] USER_URLS = new String[]{
-    "/api/user/**",
-    "/api/public/carts/**",  // ✅ carts yêu cầu login
-    "/api/wishlist/**"
-};
 
-public static final String[] ADMIN_URLS = new String[]{
-    "/api/admin/**"
-};
+    // 🔐 URL CHO USER: Yêu cầu quyền USER hoặc ADMIN
+    public static final String[] USER_URLS = new String[]{
+        "/api/user/**",
+        "/api/public/carts/**",
+        "/api/wishlist/**",
+        "/api/orders/**",
+    };
 
+    // 🚫 URL CHO ADMIN: Chỉ ADMIN mới được vào
+    public static final String[] ADMIN_URLS = new String[]{
+        "/api/admin/**",
+        "/api/admin/categories/**",
+        "/api/admin/products/**"
+    };
 }
