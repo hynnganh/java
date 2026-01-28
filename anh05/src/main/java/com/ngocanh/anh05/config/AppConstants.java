@@ -67,6 +67,7 @@ public static final String[] PUBLIC_URLS = {
     "/api/login",
 
     "/api/public/**",
+    "/api/reviews/**",
 
     "/api/forgot-password/**",
     "/api/reset-password/**",

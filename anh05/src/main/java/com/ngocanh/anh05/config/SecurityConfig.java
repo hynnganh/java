@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .requestMatchers(AppConstants.USER_URLS).hasAnyAuthority("USER", "ADMIN")
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                 .requestMatchers(AppConstants.ADMIN_URLS).hasAuthority("ADMIN") 
+                .requestMatchers("/api/reviews/public/can-review").authenticated()
                 .anyRequest().authenticated()
             )
             // ❗ 401 HANDLER

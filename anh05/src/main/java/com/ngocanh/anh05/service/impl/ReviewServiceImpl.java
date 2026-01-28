@@ -111,7 +111,6 @@ public class ReviewServiceImpl implements ReviewService {
         dto.setCreatedAt(review.getCreatedAt());
         dto.setProductId(review.getProduct().getProductId());
         dto.setUserId(review.getUser().getUserId());
-        // Hiển thị tên đầy đủ của người dùng
         dto.setUserName(review.getUser().getFirstName() + " " + review.getUser().getLastName());
         return dto;
     }
