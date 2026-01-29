@@ -1,11 +1,11 @@
 "# java" 
-# 🛒 E-Commerce Cart Management System (Anh05)
+# E-Commerce Cart Management System (Anh05)
 
 Hệ thống quản lý giỏ hàng thương mại điện tử hoàn chỉnh, xây dựng trên kiến trúc **Full-stack** hiện đại với Java Spring Boot và ReactJS.
 
 ---
 
-## 🏗️ Kiến trúc & Công nghệ (Tech Stack)
+## Kiến trúc & Công nghệ (Tech Stack)
 
 Hệ thống được thiết kế theo mô hình **Client-Server** tách biệt nhằm tối ưu hóa khả năng mở rộng và bảo trì.
 
@@ -18,7 +18,7 @@ Hệ thống được thiết kế theo mô hình **Client-Server** tách biệt
 
 ---
 
-## 🚀 Hướng dẫn Cài đặt & Khởi chạy
+## Hướng dẫn Cài đặt & Khởi chạy
 
 ### 1. Backend (Java Spring Boot)
 1. **Cấu hình:** Mở file `src/main/resources/application.properties` để chỉnh sửa thông tin Database.
@@ -32,7 +32,7 @@ Hệ thống được thiết kế theo mô hình **Client-Server** tách biệt
 
 ---
 
-## 📖 Tài liệu API (API Documentation)
+## Tài liệu API (API Documentation)
 
 Hệ thống sử dụng **JWT Token** để bảo mật. Các yêu cầu đến vùng `/api/admin/**` cần kèm theo Header: `Authorization: Bearer <Token>`.
 
@@ -45,7 +45,7 @@ Hệ thống sử dụng **JWT Token** để bảo mật. Các yêu cầu đến
 
 ---
 
-## 🧪 Dữ liệu mẫu (Seed Data)
+## Dữ liệu mẫu (Seed Data)
 
 * **Tự động:** Hệ thống sử dụng file `ngocanhjava.sql` trong thư mục `DoAn`.
 * **Tài khoản Test:**
@@ -54,7 +54,7 @@ Hệ thống sử dụng **JWT Token** để bảo mật. Các yêu cầu đến
 
 ---
 
-## 🌲 Quy trình Quản lý Mã nguồn (Git)
+##  Quy trình Quản lý Mã nguồn (Git)
 
 Dự án sử dụng Git để quản lý phiên bản với các quy tắc đơn giản:
 
@@ -69,6 +69,6 @@ Dự án sử dụng Git để quản lý phiên bản với các quy tắc đơ
    - Xác nhận: `git commit -m "mô tả"`
    - Đẩy lên GitHub: `git push origin main`
 
-## 👨‍💻 Tác giả
-* **Sinh viên:** Ngọc Ánh
+## Tác giả
+* **Sinh viên:** Huỳnh Thị Ngọc Ánh - 2123110154
 * **Project:** Thiết kế Website Mỹ Phẩm
