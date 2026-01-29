@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const forgotPasswordApi = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: "https://java-lbdz.onrender.com/api",
   headers: {
     "Content-Type": "application/json",
   },

@@ -70,7 +70,7 @@ const ProductListAD = () => {
         description: product.description,
         categoryId: product.category?.categoryId || "" 
       });
-      setImagePreview(product.image ? `http://localhost:8080/api/public/products/image/${product.image}` : null);
+      setImagePreview(product.image ? `https://java-lbdz.onrender.com/api/public/products/image/${product.image}` : null);
     } else {
       setIsEdit(false);
       setFormData({ productId: "", productName: "", price: "", discount: 0, quantity: 1, description: "", categoryId: "" });
@@ -179,7 +179,7 @@ const ProductListAD = () => {
                 <tr key={p.productId}>
                   <td>{p.productId}</td>
                   <td>
-                    <img src={p.image ? `http://localhost:8080/api/public/products/image/${p.image}` : "https://via.placeholder.com/50"} 
+                    <img src={p.image ? `https://java-lbdz.onrender.com/api/public/products/image/${p.image}` : "https://via.placeholder.com/50"} 
                          style={{width: "40px", height: "40px", objectFit: "cover", borderRadius: "6px"}} alt="p" />
                   </td>
                   <td className="fw-semibold">{p.productName}</td>

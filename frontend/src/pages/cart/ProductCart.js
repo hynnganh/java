@@ -174,7 +174,7 @@ const ProductCart = () => {
                   {/* Ảnh sản phẩm */}
                   <div className="col-3 col-md-2">
                     <img
-                      src={`http://localhost:8080/api/public/products/image/${item.image}`}
+                      src={`https://java-lbdz.onrender.com/api/public/products/image/${item.image}`}
                       className="img-fluid rounded-3 border"
                       alt={item.productName}
                     />

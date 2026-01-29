@@ -227,7 +227,7 @@ const OrderList = () => {
                               <td className="ps-3 py-3">
                                 <div className="d-flex align-items-center gap-3">
                                   <img 
-                                    src={`http://localhost:8080/api/public/products/image/${item.product.image}`} 
+                                    src={`https://java-lbdz.onrender.com/api/public/products/image/${item.product.image}`} 
                                     width="50" height="50" className="rounded-3 object-fit-cover shadow-sm border" alt=""
                                   />
                                   <div>
