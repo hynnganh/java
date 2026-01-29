@@ -95,14 +95,36 @@ public class SecurityConfig {
     }
 
     // 🌍 CORS CONFIG
+    // @Bean
+    // public CorsConfigurationSource corsConfigurationSource() {
+    //     CorsConfiguration config = new CorsConfiguration();
+
+    //     config.setAllowCredentials(true);
+    //     config.setAllowedOriginPatterns(List.of("*"));
+    //     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    //     config.setAllowedHeaders(List.of("*"));
+
+    //     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    //     source.registerCorsConfiguration("/**", config);
+
+    //     return source;
+    // }
+
+    // 🌍 CORS CONFIG - SỬA LẠI ĐOẠN NÀY
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(List.of("*"));
+        // Thay vì dùng "*" chung chung, mình dùng OriginPatterns để an toàn và không lỗi 500
+        config.setAllowedOriginPatterns(List.of(
+            "http://localhost:3000", 
+            "https://java-nine-rose.vercel.app",
+            "https://*.vercel.app" // Cho phép tất cả các sub-domain của vercel nếu nàng có đổi link
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Authorization")); // Để Frontend đọc được Token nếu cần
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

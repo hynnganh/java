@@ -6,7 +6,7 @@ import ProductCard from "../product/ProductCard"; // Nhập component đã tạo
 import ProductReview from "./ProductReview";
 import Swal from 'sweetalert2';
 
-const IMAGE_BASE_URL = "https://java-lbdz.onrender.com/api/public/products/image";
+const IMAGE_BASE_URL = "http://localhost:8080/api/public/products/image";
 
 const ProductDetail = () => {
   const { productId } = useParams();

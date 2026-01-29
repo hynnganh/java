@@ -288,7 +288,7 @@ const topSellingProducts = useMemo(() => {
                   <div key={index} className="list-group-item px-0 border-0 d-flex align-items-center py-2 hover-grow">
                     <span className="me-3 fw-bold text-secondary text-lg">#{index + 1}</span>
                     <img 
-                        src={`https://java-lbdz.onrender.com/api/public/products/image/${product.image || (product.product && product.product.image)}`} 
+                        src={`http://localhost:8080/api/public/products/image/${product.image || (product.product && product.product.image)}`} 
                         className="rounded-2 me-3" 
                         alt="" 
                         style={{width: "45px", height:"45px", objectFit:"cover"}}
@@ -317,7 +317,7 @@ const topSellingProducts = useMemo(() => {
                 {products.filter(p => p.quantity < 10).map((product) => (
                   <div key={product.productId} className="d-flex justify-content-between align-items-center mb-3 p-3 bg-red-light rounded-3 border-start border-danger border-4 hover-lift">
                     <div className="d-flex align-items-center">
-                      <img src={`https://java-lbdz.onrender.com/api/public/products/image/${product.image}`} 
+                      <img src={`http://localhost:8080/api/public/products/image/${product.image}`} 
                            className="rounded-2 me-3" 
                            alt={product.name} 
                            style={{width: "45px", height:"45px", objectFit:"cover"}} />

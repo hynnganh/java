@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import productService from '../../services/productService';
 
-const IMAGE_BASE_URL = "https://java-lbdz.onrender.com/api/public/products/image";
+const IMAGE_BASE_URL = "http://localhost:8080/api/public/products/image";
 
 const ProductNew = () => {
   const [allProducts, setAllProducts] = useState([]);

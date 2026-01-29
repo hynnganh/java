@@ -74,7 +74,7 @@ const Checkout = () => {
                 // --- XỬ LÝ THANH TOÁN ONLINE (GỌI JAVA BACKEND) ---
                 if (paymentMethod === 'BANKING') {
                     const token = localStorage.getItem('token');
-                    const response = await axios.get(`https://java-lbdz.onrender.com/api/payment/create-payment`, {
+                    const response = await axios.get(`http://localhost:8080/api/payment/create-payment`, {
                         params: { amount: totalAmount },
                         headers: {
                             'Authorization': `Bearer ${token}` // Gửi token lên để Java xác nhận
@@ -158,7 +158,7 @@ const Checkout = () => {
                             {cart.products.map((item, idx) => (
                     <div key={idx} className="d-flex gap-3 mb-3 pb-3 border-bottom border-light">
                         <img
-                            src={`https://java-lbdz.onrender.com/api/public/products/image/${item.image}`}
+                            src={`http://localhost:8080/api/public/products/image/${item.image}`}
                             width="60" 
                             height="60" 
                             className="rounded-2 shadow-sm object-fit-cover"
