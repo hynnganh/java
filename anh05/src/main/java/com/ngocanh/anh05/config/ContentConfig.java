@@ -44,10 +44,11 @@ public class ContentConfig implements WebMvcConfigurer {
 @Override
 public void addCorsMappings(CorsRegistry registry) {
     registry.addMapping("/**")
-            .allowedOrigins("https://*.vercel.app/", "http://localhost:3000") // Thay ở đây nè!
+            // THAY allowedOrigins bằng allowedOriginPatterns
+            .allowedOriginPatterns("https://*.vercel.app", "http://localhost:3000") 
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")
-            .allowCredentials(true);
+            .allowCredentials(true); // Vì cái này là true nên trên kia không được dùng "*"
 }
 
     // 2. CẤU HÌNH TRÌNH ĐỌC ẢNH: Để xem được ảnh qua link API
