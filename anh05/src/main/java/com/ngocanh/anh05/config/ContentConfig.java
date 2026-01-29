@@ -41,14 +41,14 @@ public class ContentConfig implements WebMvcConfigurer {
     }
 
     // 1. CẤU HÌNH CORS: Cho phép Frontend (Vercel) gọi API
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("https://ten-mien-frontend-cua-nang.vercel.app", "http://localhost:3000") 
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-    }
+@Override
+public void addCorsMappings(CorsRegistry registry) {
+    registry.addMapping("/**")
+            .allowedOrigins("https://hynnganh-java.vercel.app", "http://localhost:3000") // Thay ở đây nè!
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            .allowedHeaders("*")
+            .allowCredentials(true);
+}
 
     // 2. CẤU HÌNH TRÌNH ĐỌC ẢNH: Để xem được ảnh qua link API
     @Override
