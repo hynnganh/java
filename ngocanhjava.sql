@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 29, 2026 at 05:45 AM
+-- Generation Time: Jan 29, 2026 at 10:30 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -87,7 +87,7 @@ CREATE TABLE `carts` (
 INSERT INTO `carts` (`cart_id`, `created_at`, `is_active`, `total_price`, `user_id`) VALUES
 (1, NULL, NULL, 0, 1),
 (7, NULL, NULL, 357000, 8),
-(9, '2026-01-27 16:00:30.000000', b'1', 0, 10);
+(9, '2026-01-27 16:00:30.000000', b'1', 357000, 10);
 
 -- --------------------------------------------------------
 
@@ -109,7 +109,8 @@ CREATE TABLE `cart_items` (
 --
 
 INSERT INTO `cart_items` (`cart_item_id`, `discount`, `product_price`, `quantity`, `cart_id`, `product_id`) VALUES
-(14, 15, 357000, 1, 7, 3);
+(14, 15, 357000, 1, 7, 3),
+(26, 15, 357000, 1, 9, 3);
 
 -- --------------------------------------------------------
 
@@ -165,7 +166,11 @@ INSERT INTO `orders` (`order_id`, `email`, `order_date`, `order_status`, `shippi
 (8, 'beanh123@gmail.com', '2026-01-21', 'SHIPPED', 'dsfdgfyguhijokp', 315000, 8),
 (9, 'anhbebong208@gmail.com', '2026-01-28', 'DELIVERED', 'gsjdjd', 403000, 9),
 (10, 'anhbebong208@gmail.com', '2026-01-28', 'Order Accepted !', 'gsjdjd', 357000, 10),
-(11, 'anhbebong208@gmail.com', '2026-01-28', 'CANCELLED', 'gsjdjdh', 315000, 11);
+(11, 'anhbebong208@gmail.com', '2026-01-28', 'CANCELLED', 'gsjdjdh', 315000, 11),
+(12, 'anhbebong208@gmail.com', '2026-01-29', 'CANCELLED', 'gigigi', 357000, 12),
+(13, 'anhbebong208@gmail.com', '2026-01-29', 'Order Accepted !', 'gigigi', 357000, 13),
+(14, 'anhbebong208@gmail.com', '2026-01-29', 'Order Accepted !', 'gigigi', 240000, 14),
+(15, 'anhbebong208@gmail.com', '2026-01-29', 'CANCELLED', 'gigigi', 351000, 15);
 
 -- --------------------------------------------------------
 
@@ -193,7 +198,11 @@ INSERT INTO `order_items` (`order_item_id`, `discount`, `ordered_product_price`,
 (10, 10, 315000, 1, 9, 2),
 (11, 20, 88000, 1, 9, 1),
 (12, 15, 357000, 1, 10, 3),
-(13, 10, 315000, 1, 11, 2);
+(13, 10, 315000, 1, 11, 2),
+(14, 15, 357000, 1, 12, 3),
+(15, 15, 357000, 1, 13, 3),
+(16, 20, 240000, 1, 14, 4),
+(17, 10, 351000, 1, 15, 6);
 
 -- --------------------------------------------------------
 
@@ -221,7 +230,11 @@ INSERT INTO `payments` (`payment_id`, `payment_method`) VALUES
 (8, 'COD'),
 (9, 'COD'),
 (10, 'COD'),
-(11, 'COD');
+(11, 'COD'),
+(12, 'BANKING'),
+(13, 'BANKING'),
+(14, 'BANKING'),
+(15, 'COD');
 
 -- --------------------------------------------------------
 
@@ -250,8 +263,8 @@ CREATE TABLE `products` (
 INSERT INTO `products` (`product_id`, `description`, `discount`, `image`, `price`, `product_name`, `quantity`, `sold`, `special_price`, `views`, `category_id`) VALUES
 (1, 'Sữa rửa mặt dịu nhẹ cho da nhạy cảm', 20, 'c43eeb30-8613-4825-8021-30e36f3a1ab2.png', 110000, 'Sữa Rửa Mặt Simple', 19, 0, 88000, 0, 1),
 (2, 'Serum cấp ẩm và phục hồi da', 10, 'serumha.jpg', 350000, 'Serum Hyaluronic Acid', 1098, 0, 315000, 0, 3),
-(3, 'Kem dưỡng ẩm giúp da mềm mịn', 15, 'kemduonglaneige.jpg', 420000, 'Kem Dưỡng Ẩm Laneige', 57, 0, 357000, 0, 4),
-(4, 'Kem chống nắng bảo vệ da SPF50+', 20, 'kcnanessa.jpg', 300000, 'Kem Chống Nắng Anessa', 79, 0, 240000, 0, 5),
+(3, 'Kem dưỡng ẩm giúp da mềm mịn', 15, 'kemduonglaneige.jpg', 420000, 'Kem Dưỡng Ẩm Laneige', 55, 0, 357000, 0, 4),
+(4, 'Kem chống nắng bảo vệ da SPF50+', 20, 'kcnanessa.jpg', 300000, 'Kem Chống Nắng Anessa', 78, 0, 240000, 0, 5),
 (6, 'Tinh chất phục hồi da hư tổn', 10, 'tonerhoacuc.jpg', 390000, 'Tinh Chất SK-II', 34, 0, 351000, 0, 2),
 (7, 'Kem dưỡng vùng mắt giảm quầng thâm', 5, 'kemmatinnisfree.jpg', 280000, 'Kem Mắt Innisfree', 69, 0, 266000, 0, 7),
 (8, 'Nước tẩy trang làm sạch sâu', 8, 'taytrangbioderma.jpg', 200000, 'Nước Tẩy Trang Bioderma', 120, 0, 184000, 0, 8),
@@ -530,7 +543,7 @@ ALTER TABLE `carts`
 -- AUTO_INCREMENT for table `cart_items`
 --
 ALTER TABLE `cart_items`
-  MODIFY `cart_item_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `cart_item_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -542,19 +555,19 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `order_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_item_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `order_item_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `payment_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `payment_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `reviews`
