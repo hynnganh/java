@@ -44,7 +44,7 @@ public class ContentConfig implements WebMvcConfigurer {
 @Override
 public void addCorsMappings(CorsRegistry registry) {
     registry.addMapping("/**")
-            .allowedOrigins("https://java-nine-rose.vercel.app/", "http://localhost:3000") // Thay ở đây nè!
+            .allowedOrigins("https://*.vercel.app/", "http://localhost:3000") // Thay ở đây nè!
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")
             .allowCredentials(true);
