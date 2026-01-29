@@ -47,22 +47,28 @@ Hệ thống sử dụng **JWT Token** để bảo mật. Các yêu cầu đến
 
 ## 🧪 Dữ liệu mẫu (Seed Data)
 
-* **Tự động:** Hệ thống sử dụng file `ngocanhjava.sql` trong thư mục `DoAn` để tự động chèn dữ liệu khi khởi động.
+* **Tự động:** Hệ thống sử dụng file `ngocanhjava.sql` trong thư mục `DoAn`.
 * **Tài khoản Test:**
     * **Admin:** `anhbebong@gmail.com` / Pass: `ngocanhhh23`.
-    * **User:** `user@gmail.com` / Pass: `123456`.
+    * **User:** `anhbebong@gmail.com` / Pass: `ngocanhhh23`.
 
 ---
 
-## 🌲 Quy trình Git (Git Flow)
+## 🌲 Quy trình Quản lý Mã nguồn (Git)
 
-Dự án tuân thủ quy trình quản lý mã nguồn chuyên nghiệp:
-* **Commit:** Sử dụng thông điệp rõ ràng theo từng tính năng (ví dụ: `feat: add JWT security filter`).
-* **Branch:** Chia nhánh `main` cho bản ổn định và `feature/` cho các tính năng mới.
-* **PR (Pull Request):** Kiểm tra mã nguồn kỹ lưỡng trước khi gộp (merge) vào nhánh chính.
+Dự án sử dụng Git để quản lý phiên bản với các quy tắc đơn giản:
 
----
+1. **Commit Message:** Viết ngắn gọn, rõ ràng theo cấu trúc:
+   - `feat:` Cho tính năng mới
+   - `fix:` Cho sửa lỗi
+   - `docs:` Cho việc sửa tài liệu/README.
+
+2. **Quy trình đẩy code:**
+   - Kiểm tra trạng thái: `git status`
+   - Lưu thay đổi: `git add .`
+   - Xác nhận: `git commit -m "mô tả"`
+   - Đẩy lên GitHub: `git push origin main`
 
 ## 👨‍💻 Tác giả
-* **Sinh viên:** Ngọc Anh
-* **Project:** Anh05 Application
+* **Sinh viên:** Ngọc Ánh
+* **Project:** Thiết kế Website Mỹ Phẩm
