@@ -22,7 +22,7 @@ const GeminiChat = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post('http://localhost:8080/api/ai/ask', { message: userMsg });
+            const res = await axios.post('https://java-lbdz.onrender.com/api/ai/ask', { message: userMsg });
             const { reply, suggested_products } = res.data;
             setMessages(prev => [...prev, { 
                 role: 'ai', 
@@ -63,7 +63,7 @@ const GeminiChat = () => {
                                         {msg.suggestions.map((p, i) => (
                                             <div key={i} className="product-mini-card">
                                                 <div className="img-box">
-                                                    <img src={`http://localhost:8080/api/public/products/image/${p.image}`} alt={p.productName} />
+                                                    <img src={`https://java-lbdz.onrender.com/api/public/products/image/${p.image}`} alt={p.productName} />
                                                 </div>
                                                 <div className="p-detail">
                                                     <span className="p-name">{p.productName}</span>

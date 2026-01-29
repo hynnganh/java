@@ -255,7 +255,7 @@ const OrderListAD = () => {
                                         {selectedOrder.orderItems?.map((item, i) => (
                                             <div key={i} className="d-flex align-items-center justify-content-between p-3 bg-white mb-2 rounded-3 shadow-sm">
                                                 <div className="d-flex align-items-center gap-3">
-                                                    <img src={`http://localhost:8080/api/public/products/image/${item.image}`} alt="" style={{width: '50px', height: '50px', objectFit: 'cover', borderRadius: '10px'}} />
+                                                    <img src={`https://java-lbdz.onrender.com/api/public/products/image/${item.image}`} alt="" style={{width: '50px', height: '50px', objectFit: 'cover', borderRadius: '10px'}} />
                                                     <div>
                                                         <div className="fw-bold small text-dark">{item.productName}</div>
                                                         <div className="text-muted small">Số lượng: {item.quantity}</div>

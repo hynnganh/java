@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const IMAGE_BASE_URL = "http://localhost:8080/api/public/products/image";
+const IMAGE_BASE_URL = "https://java-lbdz.onrender.com/api/public/products/image";
 
 const ProductCard = ({ product, columnClass = "col-xl-3 col-lg-4 col-md-6 col-6" }) => {
   // Đồng bộ ID từ nhiều nguồn khác nhau (Backend có thể trả về id hoặc productId)
