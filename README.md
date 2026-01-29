@@ -39,9 +39,9 @@ Hệ thống sử dụng **JWT Token** để bảo mật. Các yêu cầu đến
 | Method | Endpoint | Mô tả | Role |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/api/login` | Đăng nhập lấy Token | Public |
-| **GET** | `/api/admin/carts` | Danh sách giỏ hàng | Admin |
-| **GET** | `/api/admin/carts/{id}` | Chi tiết giỏ hàng | Admin |
-| **DELETE**| `/api/admin/carts/{id}` | Xóa giỏ hàng | Admin |
+| **GET** | `/api/admin/orders` | Danh sách đơn hàng | Admin |
+| **GET** | `/api/admin/orders/{id}` | Chi tiết đơn hàng | Admin |
+| **DELETE**| `/api/admin/orders/{id}` | Xóa đơn hàng | Admin |
 
 ---
 
