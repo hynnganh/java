@@ -48,6 +48,7 @@ public class SecurityConfig {
             // 🔐 PHÂN QUYỀN
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(AppConstants.PUBLIC_URLS).permitAll()
+                .requestMatchers("/api/ai/**").permitAll()
                 .requestMatchers(AppConstants.USER_URLS).hasAnyAuthority("USER", "ADMIN")
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                 .requestMatchers(AppConstants.ADMIN_URLS).hasAuthority("ADMIN") 

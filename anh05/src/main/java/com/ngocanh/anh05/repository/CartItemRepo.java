@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.ngocanh.anh05.entity.Cart;
 import com.ngocanh.anh05.entity.CartItem;
 import com.ngocanh.anh05.entity.Product;
 
@@ -21,4 +23,5 @@ public interface CartItemRepo extends JpaRepository<CartItem, Long> {
     @Transactional
     @Query("DELETE FROM CartItem ci WHERE ci.cart.cartId = ?1 AND ci.product.productId = ?2")
     void deleteCartItemByProductIdAndCartId(Long cartId, Long productId);
+    CartItem findByCartAndProduct(Cart cart, Product product);
 }

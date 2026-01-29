@@ -47,7 +47,7 @@ Hệ thống sử dụng **JWT Token** để bảo mật. Các yêu cầu đến
 
 ## 🧪 Dữ liệu mẫu (Seed Data)
 
-* **Tự động:** Hệ thống sử dụng file `data.sql` trong thư mục `resources` để tự động chèn dữ liệu khi khởi động.
+* **Tự động:** Hệ thống sử dụng file `ngocanhjava.sql` trong thư mục `DoAn` để tự động chèn dữ liệu khi khởi động.
 * **Tài khoản Test:**
     * **Admin:** `anhbebong@gmail.com` / Pass: `ngocanhhh23`.
     * **User:** `user@gmail.com` / Pass: `123456`.

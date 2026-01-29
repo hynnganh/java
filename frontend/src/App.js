@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route, Outlet } from "react-router-dom"; // Thêm Outlet
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import ScrollToTop from "./layouts/ScrollToTop";
 // Layouts
 import Header from "./layouts/Header";
@@ -16,6 +17,8 @@ import ProductDetail from "./pages/product/ProductDetail";
 import ProductCart from "./pages/cart/ProductCart";
 import Checkout from "./pages/order/CheckOut";
 import OrderList from "./pages/order/OrderList";
+import PaymentSuccess from "./pages/order/PaymentSuccess";
+import GeminiChat from "./pages/auth/GeminiChat";
 
 // Admin
 import AdminRoute from "./routes/AdminRoute";
@@ -33,6 +36,7 @@ const UserLayout = () => (
     <div style={{ minHeight: "80vh" }}>
       <Outlet /> 
     </div>
+    <GeminiChat/>
     <Footer />
   </>
 );
@@ -73,6 +77,7 @@ function App() {
           <Route path="cart" element={<ProductCart />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="orders" element={<OrderList />} />
+          <Route path="payment-success" element={<PaymentSuccess />} />
           <Route path="*" element={
             <div className="text-center py-5">
               <h2 className="display-1 fw-bold text-muted">404</h2>

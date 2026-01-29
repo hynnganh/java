@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import cartService from '../../services/cartService';
 import Swal from 'sweetalert2';
+import axios from 'axios'; 
 
 const Checkout = () => {
     const [cart, setCart] = useState(null);
@@ -10,7 +11,7 @@ const Checkout = () => {
     const [user, setUser] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState('COD');
     const [shippingAddress, setShippingAddress] = useState('');
-    const [mobileNumber, setMobileNumber] = useState(''); // State cho số điện thoại
+    const [mobileNumber, setMobileNumber] = useState('');
     const navigate = useNavigate();
 
     const currentUser = JSON.parse(localStorage.getItem('user'));
@@ -21,7 +22,7 @@ const Checkout = () => {
 
     const loadCartAndUser = async () => {
         if (!currentUser || !currentUser.email) {
-            Swal.fire('Thông báo', 'Vui lòng đăng nhập để tiếp tục thanh toán', 'info');
+            Swal.fire('Thông báo', 'Vui lòng đăng nhập để tiếp tục', 'info');
             navigate('/login');
             return;
         }
@@ -29,26 +30,15 @@ const Checkout = () => {
         try {
             setLoading(true);
             const cartData = await cartService.getActiveCart(currentUser.email);
-            
             if (!cartData || !cartData.products || cartData.products.length === 0) {
-                await Swal.fire({
-                    icon: 'warning',
-                    title: 'Giỏ hàng trống',
-                    text: 'Bạn không có sản phẩm nào để thanh toán.',
-                });
                 navigate('/cart');
                 return;
             }
-            
             setCart(cartData);
             setUser(currentUser);
-            
-            // Tự động điền nếu user đã có SĐT trong profile, nếu không khách phải tự nhập
             setMobileNumber(currentUser.mobileNumber || '');
             setShippingAddress(localStorage.getItem('shippingAddress') || '');
-
         } catch (error) {
-            console.error('❌ Lỗi tải thông tin:', error);
             Swal.fire('Lỗi', 'Không thể tải dữ liệu giỏ hàng', 'error');
         } finally {
             setLoading(false);
@@ -56,33 +46,24 @@ const Checkout = () => {
     };
 
     const handlePlaceOrder = async () => {
-        // 1. Kiểm tra Số điện thoại
         const phoneClean = mobileNumber.trim();
-        if (!phoneClean) {
-            Swal.fire('Thông tin trống', 'Vui lòng nhập số điện thoại để shipper liên lạc', 'warning');
+        
+        if (!phoneClean || !/^[0-9]{10,11}$/.test(phoneClean)) {
+            Swal.fire('Lỗi', 'Số điện thoại không hợp lệ (10-11 số)', 'warning');
             return;
         }
-
-        const phoneRegex = /^[0-9]{10,11}$/; // Kiểm tra 10-11 chữ số
-        if (!phoneRegex.test(phoneClean)) {
-            Swal.fire('Lỗi định dạng', 'Số điện thoại phải là dãy số từ 10-11 chữ số', 'warning');
-            return;
-        }
-
-        // 2. Kiểm tra Địa chỉ
         if (!shippingAddress.trim()) {
-            Swal.fire('Thông tin trống', 'Vui lòng nhập địa chỉ giao hàng chi tiết', 'warning');
+            Swal.fire('Thông tin trống', 'Vui lòng nhập địa chỉ giao hàng', 'warning');
             return;
         }
 
         const result = await Swal.fire({
             title: 'Xác nhận đặt hàng?',
-            text: `Đơn hàng sẽ được giao đến địa chỉ: ${shippingAddress}`,
+            text: paymentMethod === 'BANKING' ? 'Hệ thống sẽ chuyển hướng đến cổng VNPay' : 'Xác nhận đặt hàng thanh toán tiền mặt',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#ffc107',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Đồng ý đặt hàng',
+            confirmButtonText: 'Đồng ý',
             cancelButtonText: 'Hủy'
         });
 
@@ -90,30 +71,39 @@ const Checkout = () => {
             try {
                 setProcessing(true);
                 localStorage.setItem('shippingAddress', shippingAddress);
+                // --- XỬ LÝ THANH TOÁN ONLINE (GỌI JAVA BACKEND) ---
+                if (paymentMethod === 'BANKING') {
+                    const token = localStorage.getItem('token');
+                    const response = await axios.get(`http://localhost:8080/api/payment/create-payment`, {
+                        params: { amount: totalAmount },
+                        headers: {
+                            'Authorization': `Bearer ${token}` // Gửi token lên để Java xác nhận
+                        }
+                    });
+                    if (response.data.url) {
+                        localStorage.setItem('pendingOrder', JSON.stringify({
+                            email: user.email,
+                            cartId: cart.cartId,
+                            address: shippingAddress,
+                            phone: phoneClean,
+                            method: 'BANKING'
+                        }));
+                        // Chuyển hướng sang VNPay
+                        window.location.href = response.data.url;
+                        return; 
+                    }
+                }
 
-                // Gửi kèm số điện thoại và địa chỉ cho Backend
-                const order = await cartService.createOrder(
-                    user.email, 
-                    cart.cartId, 
-                    paymentMethod, 
-                    shippingAddress,
-                    phoneClean // Đảm bảo backend đã hỗ trợ tham số này
-                );
-
+                // --- XỬ LÝ THANH TOÁN TIỀN MẶT (COD) ---
+                await cartService.createOrder(user.email, cart.cartId, 'COD', shippingAddress, phoneClean);
                 await cartService.clearCart(user.email, cart.cartId);
                 
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Thành công!',
-                    text: 'Đơn hàng của bạn đã được tiếp nhận.',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                
-                navigate('/orders', { state: { message: 'Đặt hàng thành công!' } });
+                await Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Đơn hàng đã được tiếp nhận.', timer: 2000, showConfirmButton: false });
+                navigate('/orders');
                 
             } catch (error) {
-                Swal.fire('Thất bại', error.response?.data?.message || 'Có lỗi xảy ra khi đặt hàng', 'error');
+                console.error("Lỗi đặt hàng:", error);
+                Swal.fire('Thất bại', 'Không thể kết nối với máy chủ thanh toán', 'error');
             } finally {
                 setProcessing(false);
             }
@@ -122,154 +112,81 @@ const Checkout = () => {
 
     const totalAmount = cart ? cartService.calculateTotal(cart.products) : 0;
 
-    if (loading) return (
-        <div className="container mt-5 text-center py-5">
-            <div className="spinner-grow text-warning" role="status"></div>
-            <p className="mt-3 text-muted">Đang chuẩn bị đơn hàng...</p>
-        </div>
-    );
+    if (loading) return <div className="container mt-5 text-center py-5">Đang tải dữ liệu...</div>;
 
     return (
         <div className="container mt-4 mb-5">
-            <nav aria-label="breadcrumb" className="mb-4">
-                <ol className="breadcrumb">
-                    <li className="breadcrumb-item"><Link to="/" className="text-decoration-none text-muted">Trang chủ</Link></li>
-                    <li className="breadcrumb-item"><Link to="/cart" className="text-decoration-none text-muted">Giỏ hàng</Link></li>
-                    <li className="breadcrumb-item active fw-bold text-dark">Thanh toán</li>
-                </ol>
-            </nav>
-
-            <h3 className="fw-bold mb-4"><i className="fas fa-check-circle me-2 text-success"></i>HOÀN TẤT ĐẶT HÀNG</h3>
-
+            <div className="mb-3">
+                <Link to="/cart" className="text-decoration-none text-dark fw-bold">
+                    <i className="fas fa-arrow-left me-2"></i>Quay lại
+                </Link>
+            </div>
+            <h3 className="fw-bold mb-4 text-uppercase text-center">Hoàn tất đặt hàng</h3>
             <div className="row g-4">
-                {/* Cột trái: Thông tin khách hàng */}
                 <div className="col-lg-7">
-                    <div className="card shadow-sm border-0 rounded-4 mb-4">
-                        <div className="card-body p-4">
-                            <h5 className="fw-bold mb-4 border-bottom pb-2">Thông tin giao hàng</h5>
-                            <div className="row g-3">
-                                <div className="col-md-12">
-                                    <label className="form-label small fw-bold text-muted text-uppercase">Họ và tên người nhận</label>
-                                    <input type="text" className="form-control py-2 bg-light border-0" value={`${user?.firstName || ''} ${user?.lastName || ''}`} readOnly />
-                                </div>
-                                <div className="col-md-12">
-                                    <label className="form-label small fw-bold text-danger text-uppercase">Số điện thoại liên lạc *</label>
-                                    <input 
-                                        type="tel" 
-                                        className="form-control py-2 border-warning shadow-none" 
-                                        placeholder="Nhập số điện thoại để shipper gọi cho bạn..."
-                                        value={mobileNumber}
-                                        onChange={(e) => setMobileNumber(e.target.value.replace(/[^0-9]/g, ''))}
-                                    />
-                                </div>
-                                <div className="col-12">
-                                    <label className="form-label small fw-bold text-danger text-uppercase">Địa chỉ chi tiết *</label>
-                                    <textarea 
-                                        className="form-control border-warning shadow-none" 
-                                        rows="3" 
-                                        placeholder="Số nhà, tên đường, Phường/Xã, Quận/Huyện..."
-                                        value={shippingAddress}
-                                        onChange={(e) => setShippingAddress(e.target.value)}
-                                    ></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div className="card shadow-sm border-0 rounded-4 p-4">
-                        <h5 className="fw-bold mb-4 border-bottom pb-2">Phương thức thanh toán</h5>
-                        {['COD', 'BANKING', 'MOMO'].map((method) => (
-                            <div 
-                                key={method}
-                                className={`payment-item p-3 mb-2 rounded-3 border d-flex align-items-center cursor-pointer ${paymentMethod === method ? 'border-warning bg-light-warning' : ''}`}
-                                onClick={() => setPaymentMethod(method)}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <input 
-                                    className="form-check-input mt-0 ml-0" 
-                                    type="radio" 
-                                    checked={paymentMethod === method}
-                                    onChange={() => {}} // Đã xử lý bằng thẻ cha
-                                />
-                                <div className="d-flex align-items-center ml-4">
-                                    <i className={`fas fa-${method === 'COD' ? 'money-bill-wave' : (method === 'BANKING' ? 'university' : 'wallet')} me-3 text-muted`}></i>
-                                    <div>
-                                        <div className="fw-bold small">
-                                            {method === 'COD' ? 'Thanh toán khi nhận hàng' : (method === 'BANKING' ? 'Chuyển khoản Ngân hàng' : 'Ví điện tử MoMo')}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                        <h5 className="fw-bold mb-3 border-bottom pb-2">Thông tin người nhận</h5>
+                        <div className="mb-3">
+                            <label className="form-label small fw-bold">Họ và tên</label>
+                            <input type="text" className="form-control bg-light" value={`${user?.firstName || ''} ${user?.lastName || ''}`} readOnly />
+                        </div>
+                        <div className="mb-3">
+                            <label className="form-label small fw-bold text-danger">Số điện thoại *</label>
+                            <input type="tel" className="form-control border-warning shadow-none" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value.replace(/[^0-9]/g, ''))} placeholder="Số điện thoại shipper liên lạc" />
+                        </div>
+                        <div className="mb-3">
+                            <label className="form-label small fw-bold text-danger">Địa chỉ giao hàng *</label>
+                            <textarea className="form-control border-warning shadow-none" rows="3" value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} placeholder="Số nhà, tên đường, phường/xã..."></textarea>
+                        </div>
+
+                        <h5 className="fw-bold mt-4 mb-3 border-bottom pb-2">Hình thức thanh toán</h5>
+                        <div className={`p-3 mb-2 rounded border d-flex align-items-center ${paymentMethod === 'COD' ? 'border-warning bg-light' : ''}`} onClick={() => setPaymentMethod('COD')} style={{cursor: 'pointer'}}>
+                            <input type="radio" checked={paymentMethod === 'COD'} readOnly />
+                            <span className="ms-3 fw-bold"><i className="fas fa-truck me-2"></i>Thanh toán khi nhận hàng (COD)</span>
+                        </div>
+                        <div className={`p-3 mb-2 rounded border d-flex align-items-center ${paymentMethod === 'BANKING' ? 'border-warning bg-light' : ''}`} onClick={() => setPaymentMethod('BANKING')} style={{cursor: 'pointer'}}>
+                            <input type="radio" checked={paymentMethod === 'BANKING'} readOnly />
+                            <span className="ms-3 fw-bold"><i className="fas fa-credit-card me-2"></i>Thanh toán qua VNPay</span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Cột phải: Tóm tắt đơn hàng */}
                 <div className="col-lg-5">
-                    <div className="card shadow-sm border-0 rounded-4">
-                        <div className="card-body p-4">
-                            <h5 className="fw-bold mb-4">Chi tiết đơn hàng</h5>
-                            <div className="order-items-scroll mb-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                {cart.products.map((item, idx) => (
-                                    <div key={idx} className="d-flex gap-3 mb-3 pb-3 border-bottom-dashed">
-                                        <img 
-                                            src={`http://localhost:8080/api/public/products/image/${item.image}`} 
-                                            width="50" height="50" className="rounded-2 shadow-sm object-fit-cover" 
-                                            alt="" 
-                                        />
-                                        <div className="flex-grow-1">
-                                            <div className="small fw-bold text-dark text-truncate" style={{maxWidth: '200px'}}>{item.productName}</div>
-                                            <div className="small text-muted">Số lượng: {item.quantity}</div>
-                                        </div>
-                                        <div className="small fw-bold">
-                                            {((item.specialPrice || item.price) * item.quantity).toLocaleString()}₫
-                                        </div>
-                                    </div>
-                                ))}
+                    <div className="card shadow-sm border-0 rounded-4 p-4">
+                        <h5 className="fw-bold mb-4">Tóm tắt đơn hàng</h5>
+                        <div className="mb-3" style={{maxHeight: '250px', overflowY: 'auto'}}>
+                            {cart.products.map((item, idx) => (
+                    <div key={idx} className="d-flex gap-3 mb-3 pb-3 border-bottom border-light">
+                        <img
+                            src={`http://localhost:8080/api/public/products/image/${item.image}`}
+                            width="60" 
+                            height="60" 
+                            className="rounded-2 shadow-sm object-fit-cover"
+                            alt={item.productName}
+                        />
+                        <div className="flex-grow-1">
+                            <div className="small fw-bold text-dark text-truncate" style={{maxWidth: '180px'}}>
+                                {item.productName}
                             </div>
-                            
-                            <div className="d-flex justify-content-between mb-2">
-                                <span className="text-muted">Tạm tính:</span>
-                                <span className="fw-bold">{totalAmount.toLocaleString()}₫</span>
-                            </div>
-                            <div className="d-flex justify-content-between mb-4">
-                                <span className="text-muted">Phí vận chuyển:</span>
-                                <span className="text-success fw-bold">Miễn phí</span>
-                            </div>
-                            <hr />
-                            <div className="d-flex justify-content-between mb-4">
-                                <span className="h5 fw-bold">Tổng tiền:</span>
-                                <span className="h4 fw-bold text-danger">{totalAmount.toLocaleString()}₫</span>
-                            </div>
-                            
-                            <button 
-                                className="btn btn-warning w-100 py-3 fw-bold rounded-pill shadow-warning-btn transition-transform"
-                                onClick={handlePlaceOrder}
-                                disabled={processing}
-                            >
-                                {processing ? (
-                                    <><span className="spinner-border spinner-border-sm me-2"></span>ĐANG XỬ LÝ...</>
-                                ) : 'XÁC NHẬN ĐẶT HÀNG'}
-                            </button>
-                            
-                            <p className="text-center mt-3 mb-0 small text-muted">
-                                Bằng cách đặt hàng, bạn đồng ý với các điều khoản của chúng tôi.
-                            </p>
+                            <div className="small text-muted">Số lượng: {item.quantity}</div>
                         </div>
+                        <div className="small fw-bold">
+                            {((item.specialPrice || item.price) * item.quantity).toLocaleString()}₫
+                        </div>
+                    </div>
+                ))}
+                        </div>
+                        <hr />
+                        <div className="d-flex justify-content-between h4 fw-bold">
+                            <span>Tổng tiền:</span>
+                            <span className="text-danger">{totalAmount.toLocaleString()}₫</span>
+                        </div>
+                        <button className="btn btn-warning w-100 py-3 mt-4 fw-bold rounded-pill text-uppercase shadow-sm" onClick={handlePlaceOrder} disabled={processing}>
+                            {processing ? 'Đang xử lý...' : 'Xác nhận đặt hàng'}
+                        </button>
                     </div>
                 </div>
             </div>
-
-            <style>{`
-                .border-bottom-dashed { border-bottom: 1px dashed #eee; }
-                .bg-light-warning { background-color: #fff9e6; }
-                .shadow-warning-btn { box-shadow: 0 8px 15px -5px rgba(255, 193, 7, 0.4); }
-                .transition-transform:active { transform: scale(0.98); }
-                .cursor-pointer { cursor: pointer; }
-                .rounded-4 { border-radius: 1rem !important; }
-                .order-items-scroll::-webkit-scrollbar { width: 4px; }
-                .order-items-scroll::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }
-            `}</style>
         </div>
     );
 };
