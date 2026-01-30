@@ -33,8 +33,9 @@ Hệ thống được thiết kế theo mô hình **Client-Server** tách biệt
 ---
 
 ## Tài liệu API (API Documentation)
+Dự án tích hợp Swagger giúp việc tra cứu và dùng thử API trở nên dễ dàng hơn. Sau khi khởi chạy Backend, bạn có thể truy cập tại:
 
-Hệ thống sử dụng **JWT Token** để bảo mật. Các yêu cầu đến vùng `/api/admin/**` cần kèm theo Header: `Authorization: Bearer <Token>`.
+**URL:** `http://localhost:8080/swagger-ui/index.html`
 
 | Method | Endpoint | Mô tả | Role |
 | :--- | :--- | :--- | :--- |
